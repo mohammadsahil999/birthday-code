@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Happy Birthday Surprise 🎉</title>
+  <style>
+    :root{--bg:#0f172a;--card:#0b1220;--accent:#ff6b81;--muted:#9aa4b2}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;background:linear-gradient(135deg,var(--bg),#07102a);color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px}
+    .wrap{width:980px;max-width:100%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:18px;padding:28px;box-shadow:0 10px 30px rgba(2,6,23,0.7);position:relative;overflow:hidden}
+    header{display:flex;gap:20px;align-items:center}
+    .photo{width:140px;height:140px;border-radius:14px;flex:0 0 140px;background:linear-gradient(135deg,var(--accent),#7c4dff);display:grid;place-items:center;overflow:hidden;border:4px solid rgba(255,255,255,0.06)}
+    .photo img{width:100%;height:100%;object-fit:cover;display:block}
+    .info h1{margin:0;font-size:26px;letter-spacing:0.4px}
+    .info p{margin:6px 0 0;color:var(--muted)}
+    .controls{margin-left:auto;display:flex;gap:10px}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,0.08);padding:8px 12px;border-radius:10px;color:#fff;cursor:pointer}
+    .hero{display:grid;grid-template-columns:1fr 360px;gap:24px;margin-top:22px}
+    .card{background:rgba(255,255,255,0.02);padding:20px;border-radius:14px;min-height:220px}
+    .message{font-size:18px;line-height:1.5}
+    .reveal{display:flex;align-items:center;gap:12px;margin-top:18px}
+    .big-msg{font-size:28px;font-weight:700;color:var(--accent);margin:10px 0}
+    .decor{display:flex;gap:8px;flex-wrap:wrap}
+    .decor .heart{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,0.03)}
+    canvas#confetti{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+    footer{margin-top:18px;display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px}
+    input[type=file]{display:none}
+    .file-label{cursor:pointer}
+    @media(max-width:880px){.hero{grid-template-columns:1fr;}.controls{position:static;}}
+  </style>
+</head>
+<body>
+  <div class="wrap" id="app">
+    <canvas id="confetti"></canvas>
+    <header>
+      <div class="photo" title="Click to upload photo" id="photoBox">
+        <img id="photo" src="" alt="C:\html/Sanno.jpg" onerror="this.style.display='none'" />
+        <svg id="cameraIcon" width="48" height="48" viewBox="0 0 24 24" fill="none" style="opacity:.9"><path d="M4 7h3l2-2h6l2 2h3v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7z" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="#fff" stroke-width="1.2"/></svg>
+      </div>
+      <div class="info">
+        <h1 id="title">Happy Birthday, <span id="name">My Love</span> 🎂</h1>
+        <p id="subtitle">A little surprise just for you — open the box below 💖</p>
+      </div>
+
+      <div class="controls">
+        <label class="file-label btn" for="fileUpload">Change Photo</label>
+        <input id="fileUpload" type="file" accept="image/*" />
+        <button class="btn" id="playBtn">Play Music</button>
+        <button class="btn" id="surpriseBtn">Open Surprise</button>
+      </div>
+    </header>
+
+    <main class="hero">
+      <section class="card">
+        <div class="message" id="messagePreview">
+          <div class="big-msg">Tap <strong>Open Surprise</strong> to reveal something special ✨</div>
+          <div>Write a short note below (it will be revealed beautifully):</div>
+          <textarea id="note" placeholder="Type your heartfelt message here..." style="width:100%;margin-top:12px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#fff;min-height:110px"></textarea>
+          <div class="reveal">
+            <button class="btn" id="saveNote">Save Message</button>
+            <button class="btn" id="confettiToggle">Toggle Confetti</button>
+            <button class="btn" id="colorToggle">Switch Theme</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div style="text-align:center">
+          <div style="font-size:20px;margin-bottom:10px">A little keepsake</div>
+          <div class="decor" id="decorArea">
+            <div class="heart">💖</div>
+            <div class="heart">🌟</div>
+            <div class="heart">🎶</div>
+            <div class="heart">🎁</div>
+          </div>
+          <div style="margin-top:16px;font-size:13px;color:var(--muted)">Click the photo to change it, or use the Change Photo button.</div>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <div>Made with ❤️ — Surprise generator</div>
+      <div style="margin-left:auto;color:var(--muted)">Tip: Use the "Play Music" button to add a song</div>
+    </footer>
+
+    <!-- hidden audio - user can drop an mp3 file or paste a URL -->
+    <input id="audioFile" type="file" accept="audio/*" style="display:none" />
+    <audio id="audio" preload="none"></audio>
+  </div>
+
+  <script>
+    // Simple UI wiring
+    const photoEl = document.getElementById('photo');
+    const photoBox = document.getElementById('photoBox');
+    const fileUpload = document.getElementById('fileUpload');
+    const nameEl = document.getElementById('name');
+    const surpriseBtn = document.getElementById('surpriseBtn');
+    const noteEl = document.getElementById('note');
+    const saveNote = document.getElementById('saveNote');
+    const messagePreview = document.getElementById('messagePreview');
+    const playBtn = document.getElementById('playBtn');
+    const audio = document.getElementById('audio');
+    const audioFile = document.getElementById('audioFile');
+    const confettiCanvas = document.getElementById('confetti');
+    const confettiToggle = document.getElementById('confettiToggle');
+    const colorToggle = document.getElementById('colorToggle');
+
+    // Allow click on photo to open file picker
+    photoBox.addEventListener('click', ()=> fileUpload.click());
+    fileUpload.addEventListener('change', ev => {
+      const f = ev.target.files[0];
+      if(!f) return;
+      const reader = new FileReader();
+      reader.onload = e => { photoEl.src = e.target.result; photoEl.style.display = 'block'; document.getElementById('cameraIcon').style.display='none'; }
+      reader.readAsDataURL(f);
+    });
+
+    // Save message and show small preview
+    saveNote.addEventListener('click', ()=>{
+      const t = noteEl.value.trim();
+      if(!t) return alert('Please type a short message first.');
+      localStorage.setItem('birthday_note', t);
+      alert('Message saved! Now click Open Surprise to reveal it in style.');
+    });
+
+    // Surprise reveal
+    surpriseBtn.addEventListener('click', ()=>{
+      const note = localStorage.getItem('birthday_note') || noteEl.value || 'You mean the world to me. Happy Birthday!';
+      revealMessage(note);
+      startConfetti();
+      try{ audio.play().catch(()=>{}); }catch(e){}
+    });
+
+    function revealMessage(text){
+      messagePreview.innerHTML = `
+        <div style="font-size:22px;color:var(--accent);font-weight:700;">For <span id=\"displayName\">${escapeHtml(nameEl.textContent)}</span></div>
+        <div style="margin-top:12px;font-size:16px;">${escapeHtml(text).replace(/\n/g,'<br>')}</div>
+        <div style="margin-top:18px"><button class=\"btn\" onclick=\"downloadCard()\">Download Card</button></div>
+      `;
+    }
+
+    // Play music: prompt user to pick an audio file
+    playBtn.addEventListener('click', ()=>{
+      const url = prompt('Enter a direct URL to an MP3 (or cancel to upload a file):');
+      if(url){ audio.src = url; audio.play().catch(()=>alert('Autoplay blocked — please press play on the audio controls.')); return; }
+      audioFile.click();
+    });
+    audioFile.addEventListener('change', ev=>{
+      const f = ev.target.files[0]; if(!f) return;
+      const u = URL.createObjectURL(f); audio.src = u; audio.play().catch(()=>{});
+    });
+
+    // small helper
+    function escapeHtml(s){ return String(s).replace(/[&<>\"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;','\'':"&#39;"}[c]; }); }
+
+    // Download simple card as image (using canvas)
+    function downloadCard(){
+      const w = 1200, h = 630;
+      const c = document.createElement('canvas'); c.width=w; c.height=h; const ctx=c.getContext('2d');
+      // background
+      ctx.fillStyle = '#07102a'; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle = '#0b1220'; ctx.fillRect(40,40,w-80,h-80);
+      // text
+      ctx.fillStyle = '#fff'; ctx.font = '48px sans-serif'; ctx.fillText('Happy Birthday', 80, 140);
+      ctx.fillStyle = '#ff6b81'; ctx.font = '64px serif'; ctx.fillText((document.getElementById('displayName')||{}).textContent||nameEl.textContent, 80, 220);
+      ctx.font='28px sans-serif';
+      const note = (localStorage.getItem('birthday_note') || noteEl.value || 'You are amazing — have an incredible day!');
+      wrapText(ctx, note, 80, 300, w-160, 36);
+      c.toBlob(b=>{ const url=URL.createObjectURL(b); const a=document.createElement('a'); a.href=url; a.download='birthday-card.png'; a.click(); URL.revokeObjectURL(url); }, 'image/png');
+    }
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight){ const words=text.split(' '); let line=''; for(let n=0;n<words.length;n++){ const testLine=line+words[n]+' '; const metrics=ctx.measureText(testLine); if(metrics.width>maxWidth && n>0){ ctx.fillText(line, x, y); line=words[n]+' '; y+=lineHeight; } else { line=testLine; } } ctx.fillText(line, x, y); }
+
+    // Minimal confetti implementation
+    const confetti = [];
+    let confOn = true;
+    const ctx = confettiCanvas.getContext('2d');
+    function resizeCanvas(){ confettiCanvas.width = app.clientWidth; confettiCanvas.height = app.clientHeight; }
+    const app = document.getElementById('app');
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    function startConfetti(){ if(!confOn) return; for(let i=0;i<120;i++) confetti.push({x:Math.random()*confettiCanvas.width, y:-Math.random()*confettiCanvas.height, r:Math.random()*7+6, c:['#ff6b81','#ffd166','#7c4dff','#6ee7b7'][Math.floor(Math.random()*4)], velY:2+Math.random()*6, rot:Math.random()*360, velX:(Math.random()-0.5)*3}); }
+    function update(){ ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); for(let i=0;i<confetti.length;i++){ const p=confetti[i]; p.y += p.velY; p.x += p.velX; p.rot += p.velX*5; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180); ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/2,p.r, p.r*1.6); ctx.restore(); if(p.y>confettiCanvas.height+20) confetti.splice(i,1); }
+      requestAnimationFrame(update);
+    }
+    update();
+
+    confettiToggle.addEventListener('click', ()=>{ confOn = !confOn; alert('Confetti ' + (confOn? 'enabled' : 'disabled')); });
+
+    // switch accent color theme
+    let alt=false;
+    colorToggle.addEventListener('click', ()=>{ alt=!alt; document.documentElement.style.setProperty('--accent', alt? '#7c4dff' : '#ff6b81'); });
+
+    // small onboarding: load saved name & note if available
+    if(localStorage.getItem('birthday_name')) nameEl.textContent = localStorage.getItem('birthday_name');
+    if(localStorage.getItem('birthday_note')) noteEl.value = localStorage.getItem('birthday_note');
+
+    // Quick inline name edit on title click
+    document.getElementById('title').addEventListener('click', ()=>{
+      const newName = prompt('Enter her name:', nameEl.textContent);
+      if(newName){ nameEl.textContent = newName; localStorage.setItem('birthday_name', newName); }
+    });
+
+    // allow dropping image onto photo box
+    photoBox.addEventListener('dragover', e=>{ e.preventDefault(); photoBox.style.opacity=0.8; });
+    photoBox.addEventListener('dragleave', e=>{ photoBox.style.opacity=1; });
+    photoBox.addEventListener('drop', e=>{
+      e.preventDefault(); photoBox.style.opacity=1; const f = e.dataTransfer.files && e.dataTransfer.files[0]; if(!f) return; const r = new FileReader(); r.onload = ev=>{ photoEl.src = ev.target.result; photoEl.style.display='block'; document.getElementById('cameraIcon').style.display='none'; }; r.readAsDataURL(f);
+    });
+
+    // expose download function to inline onclick
+    window.downloadCard = downloadCard;
+  </script>
+</body>
+</html>
